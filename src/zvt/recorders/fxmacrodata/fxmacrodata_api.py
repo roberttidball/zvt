@@ -23,7 +23,6 @@ FXMACRODATA_DEFAULT_CURRENCY_PAIRS = [
     "DKKUSD",
     "EURUSD",
     "GBPUSD",
-    "IDRUSD",
     "ILSUSD",
     "JPYUSD",
     "NGNUSD",
