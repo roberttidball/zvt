@@ -84,7 +84,8 @@ def get_kdata(
     code = normalize_currency_pair(code)
     base_currency = code[:3].lower()
     quote_currency = code[3:].lower()
-    params = _query_params(start_timestamp, end_timestamp, api_key)
+    params = _query_params(start_timestamp, end_timestamp)
+    headers = _request_headers(api_key)
     url = f"{base_url.rstrip('/')}/forex/{base_currency}/{quote_currency}"
 
     http = session or requests
@@ -95,16 +96,14 @@ def get_kdata(
             response = http.get(
                 url,
                 params=params,
-                headers={"Accept": "application/json"},
+                headers=headers,
                 timeout=timeout,
             )
         except requests.RequestException as exc:
             raise RuntimeError("FXMacroData request failed") from exc
         try:
             if not response.ok:
-                raise RuntimeError(
-                    f"FXMacroData returned HTTP {response.status_code}"
-                )
+                raise RuntimeError(f"FXMacroData returned HTTP {response.status_code}")
             try:
                 payload = response.json()
             except ValueError as exc:
@@ -172,18 +171,21 @@ def close_response(response):
         close()
 
 
-def _query_params(start_timestamp, end_timestamp, api_key):
+def _query_params(start_timestamp, end_timestamp):
     params = {}
     if start_timestamp is not None:
         params["start_date"] = _date_param(start_timestamp)
     if end_timestamp is not None:
         params["end_date"] = _date_param(end_timestamp)
+    return params
 
+
+def _request_headers(api_key):
+    headers = {"Accept": "application/json"}
     api_key = api_key or _api_key_from_environment()
     if api_key:
-        params["api_key"] = api_key
-
-    return params
+        headers["X-API-Key"] = api_key
+    return headers
 
 
 def _date_param(value):

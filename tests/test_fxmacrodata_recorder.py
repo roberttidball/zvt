@@ -76,11 +76,10 @@ def test_get_kdata_fetches_fxmacrodata_prices():
             "params": {
                 "start_date": "2024-01-01",
                 "end_date": "2024-01-31",
-                "api_key": "test-key",
                 "limit": 100,
                 "offset": 0,
             },
-            "headers": {"Accept": "application/json"},
+            "headers": {"Accept": "application/json", "X-API-Key": "test-key"},
             "timeout": 12,
         }
     ]
@@ -103,7 +102,9 @@ def test_get_kdata_fetches_fxmacrodata_prices():
     ]
 
 
-def test_get_kdata_preserves_reference_ohlc():
+def test_get_kdata_preserves_reference_ohlc(monkeypatch):
+    for env_var in fxmacrodata_api.FXMACRODATA_API_KEY_ENV_VARS:
+        monkeypatch.delenv(env_var, raising=False)
     response = FakeResponse(
         {
             "data": [
@@ -125,6 +126,7 @@ def test_get_kdata_preserves_reference_ohlc():
         session=session,
     )
 
+    assert session.calls[0]["headers"] == {"Accept": "application/json"}
     assert df.loc[0, ["open", "high", "low", "close"]].to_dict() == {
         "open": 1.09,
         "high": 1.12,
